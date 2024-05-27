@@ -1,0 +1,57 @@
+const int segA2 = 0;
+const int segB2 = 1;
+const int segC2 = 2;
+const int segD2 = 3;
+const int segE2 = 4;
+const int segF2 = 5;
+const int segG2 = 6;
+const int segA1 = 7;
+const int segB1 = 8;
+const int segC1 = 9;
+const int segD1 = 10;
+const int segE1 = 11;
+const int segF1 = 12;
+const int segG1 = 13;
+
+int segments1[] = {segA1, segB1, segC1, segD1, segE1, segF1, segG1};
+int segments2[] = {segA2, segB2, segC2, segD2, segE2, segF2, segG2};
+
+byte digits[16] = {
+  0b1111101, // 0
+  0b0110000, // 1
+  0b1101110, // 2
+  0b1111010, // 3
+  0b0110011, // 4
+  0b1011011, // 5
+  0b1011111, // 6
+  0b1110000, // 7
+  0b1111111, // 8
+  0b1111011, // 9
+};
+
+void setup(){
+    for (int i = 0; i < 7; i++) {
+    pinMode(segments1[i], OUTPUT);
+    pinMode(segments2[i], OUTPUT);
+  }
+}
+
+void loop(){
+    for (int i = 15; i >= 0; i--) {
+    int tens = i / 10;
+    int units = i % 10;
+    displayDigit(tens, units);
+    delay(1000);
+  }
+  delay(10000);
+}
+
+void displayDigit(int tens, int units) {
+  for (int i = 0; i < 7; i++) {
+    digitalWrite(segments1[i], (digits[tens] >> (6 - i)) & 0x01);
+  }
+  
+  for (int i = 0; i < 7; i++) {
+    digitalWrite(segments2[i], (digits[units] >> (6 - i)) & 0x01);
+  }
+}
