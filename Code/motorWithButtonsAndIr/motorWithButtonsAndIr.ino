@@ -30,10 +30,10 @@ void setup() {
 
 void loop() {
   if (digitalRead(ButtonCW) == LOW) {
-    myStepper.setSpeed(-600);
+    myStepper.setSpeed(-400);
     myStepper.runSpeed();
   } else if (digitalRead(ButtonCCW) == LOW) {
-    myStepper.setSpeed(600);
+    myStepper.setSpeed(400);
     myStepper.runSpeed();
   } else if (IrReceiver.decode()) {
     if (IrReceiver.decodedIRData.command == 0x15) {
@@ -45,7 +45,6 @@ void loop() {
       myStepper.setCurrentPosition(0);
       IrReceiver.resume();
     }} else{
-    myStepper.disableOutputs();
   }
   
 }
