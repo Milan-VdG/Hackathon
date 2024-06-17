@@ -10,7 +10,7 @@
 #define MotorInterfaceType 4
 #define ButtonCW 6
 #define ButtonLR 7
-#define IRreceive 2
+#define IRreceive A4
 #define ButtonStart 3
 
 // Creates an instance
@@ -46,35 +46,27 @@ void setup() {
   initialPositionY = lrStepper.currentPosition();
 
   //IR setup
-  // Start the receiver and if not 3. parameter specified, take LED_BUILTIN pin from the internal boards definition as default feedback LED
-  // IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);
+  //Start the receiver and if not 3. parameter specified, take LED_BUILTIN pin from the internal boards definition as default feedback LED
+  IrReceiver.begin(IRreceive, DISABLE_LED_FEEDBACK);
 }
 
 void loop() {
+  // check for start button press, give 1 to arduino 2
   if (running == false && digitalRead(ButtonStart) == LOW) {
     running = true;
     Serial.println(1);
     Serial.write(1);
   }
+  // move motors only when start is presssed
   if (running == true) {
     if (digitalRead(ButtonCW) == HIGH) {
       myStepper.setSpeed(-300);
       myStepper.runSpeed();
 
     } else if (digitalRead(ButtonLR) == HIGH) {
-      lrStepper.setSpeed(300);
+      lrStepper.setSpeed(400);
       lrStepper.runSpeed();
 
-    } else if (IrReceiver.decode()) {
-      if (IrReceiver.decodedIRData.command == 0x15) {
-        myStepper.runToNewPosition(100);
-        myStepper.setCurrentPosition(0);
-        IrReceiver.resume();
-      } else if (IrReceiver.decodedIRData.command == 0x46) {
-        myStepper.runToNewPosition(-100);
-        myStepper.setCurrentPosition(0);
-        IrReceiver.resume();
-      }
     } else {
       lrStepper.disableOutputs();
     }
@@ -83,14 +75,15 @@ void loop() {
     myStepper.setSpeed(200);
     myStepper.runSpeed();
   }
+  // arduino 2 gives back 0 when 15 seconds have elapsed, push, move back to start position and disable outputs
   if (Serial.available() > 0) {
     if (Serial.read() == 0) {
       running = false;
-      pushStepper.moveTo(pushStepper.currentPosition() - 1700); // Assuming 200 steps for one rotation
+      pushStepper.moveTo(pushStepper.currentPosition() - 1700);  // Assuming 200 steps for one rotation
       while (pushStepper.isRunning()) {
         pushStepper.run();
       }
-      pushStepper.moveTo(pushStepper.currentPosition() + 1700); // Assuming 200 steps for one rotation
+      pushStepper.moveTo(pushStepper.currentPosition() + 1700);  // Assuming 200 steps for one rotation
       while (pushStepper.isRunning()) {
         pushStepper.run();
       }
@@ -106,5 +99,36 @@ void loop() {
       lrStepper.disableOutputs();
       pushStepper.disableOutputs();
     }
+  }
+  // when not in game, move motors with IRremote
+  if (IrReceiver.decode()) {
+    if (running == false) {
+      if (IrReceiver.decodedIRData.command == 0x15) {
+        myStepper.setSpeed(-300);
+        for (int i = 0; i < 20000; i++) {
+          myStepper.runSpeed();
+        }
+      } else if (IrReceiver.decodedIRData.command == 0x46) {
+        myStepper.setSpeed(300);
+        for (int i = 0; i < 20000; i++) {
+          myStepper.runSpeed();
+        }
+      } else if (IrReceiver.decodedIRData.command == 0x44) {
+        lrStepper.setSpeed(-300);
+        for (int i = 0; i < 30000; i++) {
+          lrStepper.runSpeed();
+        }
+      } else if (IrReceiver.decodedIRData.command == 0x43) {
+        lrStepper.setSpeed(300);
+        for (int i = 0; i < 20000; i++) {
+          lrStepper.runSpeed();
+        }
+      } else if (IrReceiver.decodedIRData.command == 0x42) {
+        myStepper.disableOutputs();
+        lrStepper.disableOutputs();
+        pushStepper.disableOutputs();
+      }
+    }
+    IrReceiver.resume();  // Receive the next value
   }
 }
