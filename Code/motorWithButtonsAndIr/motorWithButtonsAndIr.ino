@@ -31,7 +31,7 @@ void setup() {
   myStepper.setMaxSpeed(300.0);
   myStepper.setAcceleration(100.0);
   myStepper.setSpeed(250);
-  lrStepper.setMaxSpeed(1000.0);
+  lrStepper.setMaxSpeed(400.0);
   lrStepper.setAcceleration(200.0);
   lrStepper.setSpeed(-300);
   pushStepper.setMaxSpeed(600.0);
@@ -123,10 +123,22 @@ void loop() {
         for (int i = 0; i < 20000; i++) {
           lrStepper.runSpeed();
         }
+      } else if (IrReceiver.decodedIRData.command == 0x16) {
+        pushStepper.setSpeed(300);
+        for (int i = 0; i < 20000; i++) {
+          pushStepper.runSpeed();
+        }
+      } else if (IrReceiver.decodedIRData.command == 0x19) {
+        pushStepper.setSpeed(-300);
+        for (int i = 0; i < 20000; i++) {
+          pushStepper.runSpeed();
+        }
       } else if (IrReceiver.decodedIRData.command == 0x42) {
         myStepper.disableOutputs();
         lrStepper.disableOutputs();
         pushStepper.disableOutputs();
+        initialPositionZ = myStepper.currentPosition();
+        initialPositionY = lrStepper.currentPosition();
       }
     }
     IrReceiver.resume();  // Receive the next value
